@@ -7,10 +7,9 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY!
 );
 
-export async function signupUser(email: string, password: string) {
+export async function signupUser(email: string, password: string, role = 0, domain = '') {
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // Check if user already exists
   const { data: existingUser } = await supabase
     .from('users')
     .select('id')
@@ -21,17 +20,21 @@ export async function signupUser(email: string, password: string) {
     throw new Error('User already exists');
   }
 
-  const { data, error } = await supabase.from('users').insert({
-    email,
-    password: hashedPassword,
-    role: 0, // Default to judge
-  }).select().single();
+  const { data, error } = await supabase
+    .from('users')
+    .insert({
+      email,
+      password: hashedPassword,
+      role,
+      domain: role === 0 ? domain : null,
+    })
+    .select()
+    .single();
 
   if (error) throw error;
 
-  // Redirect based on role
   if (typeof window !== 'undefined') {
-    if (data.role === 1) {
+    if (role === 1) {
       window.location.href = '/admin/dashboard';
     } else {
       window.location.href = '/judge/dashboard';
@@ -40,3 +43,4 @@ export async function signupUser(email: string, password: string) {
 
   return data;
 }
+
