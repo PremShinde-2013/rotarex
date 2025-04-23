@@ -1,211 +1,127 @@
-"use client";
+// 
 
-import { useEffect, useState } from "react";
-import { supabase } from "../../../../utils/supabaseClient";
+'use client';
 
-interface Project {
-  id: number;
-  display_code: string;
-  project_title: string;
-  category: string;
-  domain: string;
-  created_at: string;
-  participants?: string;
-  // description?: string;
-  institute_name?: string;
-}
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '../../../../utils/supabaseClient';
 
 export default function AdminDashboard() {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>("");
+  const router = useRouter();
+  const [userName, setUserName] = useState('');
+  const [projects, setProjects] = useState<{ 
+    id: number; 
+    group_number: number; 
+    project_title: string; 
+    domain: string; 
+    category: string; 
+    university: string; 
+    institute_name: string; 
+    poster_url?: string; 
+    participants?: { name: string }[]; 
+    status: string; 
+    totalmarks?: number; 
+  }[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const role = sessionStorage.getItem('role');
+    const name = sessionStorage.getItem('userName');
+
+    if (role !== '1') {
+      router.push('/');
+    } else {
+      setUserName(name || '');
+    }
+  }, [router]);
 
   useEffect(() => {
     const fetchProjects = async () => {
-      const { data, error } = await supabase
-        .from("projects")
-        .select(
-          "id, display_code, project_title, category, domain, created_at, participants, institute_name"
-        )
-        .order("created_at", { ascending: false });
-
-      if (error) console.error("Error fetching data:", error);
-      else setProjects(data || []);
-      setLoading(false);
+      const { data, error } = await supabase.from('projects').select('*');
+      if (!error && data) setProjects(data);
     };
 
     fetchProjects();
   }, []);
 
+  const filteredProjects = projects.filter(project =>
+    project.group_number.toString().includes(searchTerm) ||
+    project.project_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    project.domain.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4 text-violet-700">
-        📋 Registered Projects
-      </h1>
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <div className="min-h-screen bg-gray-100 py-10 px-6 md:px-12">
-          <h1 className="text-3xl font-bold text-violet-700 mb-8 text-center">
-            Admin Dashboard
-          </h1>
+    <div className="max-w-7xl mx-auto mt-20 px-6">
+      <h1 className="text-4xl font-bold text-violet-700 mb-2">Admin Dashboard</h1>
+      <p className="text-lg text-gray-700 mb-6">Welcome, {userName}!</p>
 
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-violet-500">
-              <h2 className="text-lg font-semibold text-gray-700">
-                Total Projects
-              </h2>
-              <p className="text-3xl font-bold text-violet-600 mt-2">
-                {projects.length}
-              </p>
-            </div>
-            <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-pink-500">
-              <h2 className="text-lg font-semibold text-gray-700">Judges</h2>
-              <p className="text-3xl font-bold text-pink-600 mt-2">12</p>
-            </div>
-            <div className="bg-white p-6 rounded-xl shadow-md border-l-4 border-green-500">
-              <h2 className="text-lg font-semibold text-gray-700">
-                Registered Teams
-              </h2>
-              <p className="text-3xl font-bold text-green-600 mt-2">
-                {projects.length}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-700">
-              Recent Registrations
-            </h2>
-            <input
-              type="text"
-              placeholder="Search projects..."
-              className="px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-300"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          {/* Recent Activity or Table */}
-          <div className="bg-white p-6 rounded-xl shadow-md">
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">
-              Recent Registrations
-            </h2>
-            <table className="min-w-full text-sm text-left text-gray-700 bg-white shadow rounded-xl overflow-hidden">
-              <thead className="bg-violet-100 text-violet-700">
-                <tr>
-                  <th className="px-4 py-2">Display Code</th>
-                  <th className="px-4 py-2">Project Title</th>
-                  <th className="px-4 py-2">Category</th>
-                  <th className="px-4 py-2">Domain</th>
-                  <th className="px-4 py-2">Date</th>
-                  <th className="px-4 py-2">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {projects
-                  .filter(
-                    (project) =>
-                      project.project_title
-                        .toLowerCase()
-                        .includes(searchTerm.toLowerCase()) ||
-                      project.display_code
-                        .toLowerCase()
-                        .includes(searchTerm.toLowerCase()) ||
-                      project.category
-                        .toLowerCase()
-                        .includes(searchTerm.toLowerCase()) ||
-                      project.domain
-                        .toLowerCase()
-                        .includes(searchTerm.toLowerCase())
-                  )
-                  .map((project) => (
-                    <tr
-                      key={project.id}
-                      className="border-b hover:bg-gray-50 transition-all"
-                    >
-                      <td className="px-4 py-2 font-medium text-violet-600">
-                        {project.display_code}
-                      </td>
-                      <td className="px-4 py-2">{project.project_title}</td>
-                      <td className="px-4 py-2">{project.category}</td>
-                      <td className="px-4 py-2">{project.domain}</td>
-                      <td className="px-4 py-2">
-                        {new Date(project.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-4 py-2">
-                        <button
-                          onClick={() => setSelectedProject(project)}
-                          className="text-blue-500 hover:text-blue-700"
-                        >
-                          View
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-
-                {projects.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="text-center py-4 text-gray-400">
-                      No projects registered yet.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="bg-violet-100 p-4 rounded-2xl shadow text-center">
+          <h2 className="text-lg font-bold text-violet-700">Total Projects</h2>
+          <p className="text-2xl font-semibold">{projects.length}</p>
         </div>
-      )}
-
-      {/* Modal */}
-      {selectedProject && (
-        <div className="fixed inset-0 bg-gray-200 bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-xl shadow-lg max-w-lg w-full relative">
-            <button
-              className="absolute top-3 right-3 text-gray-500 hover:text-red-500"
-              onClick={() => setSelectedProject(null)}
-            >
-              ✕
-            </button>
-            <h2 className="text-2xl font-bold text-violet-700 mb-4">
-              {selectedProject.project_title}
-            </h2>
-            <p>
-              <strong>Display Code:</strong> {selectedProject.display_code}
-            </p>
-            <p>
-              <strong>Category:</strong> {selectedProject.category}
-            </p>
-            <p>
-              <strong>Domain:</strong> {selectedProject.domain}
-            </p>
-            <p>
-              <strong>Institution:</strong>{" "}
-              {selectedProject.institute_name || "N/A"}
-            </p>
-            <ul className="list-disc list-inside ml-2 mt-1 text-sm">
-              {Array.isArray(selectedProject.participants) ? (
-                selectedProject.participants.map(
-                  (member: { name: string; email: string; contact: string }, index: number) => (
-                    <li key={index}>
-                      {member.name} ({member.email}, {member.contact})
-                    </li>
-                  )
-                )
-              ) : (
-                <li>N/A</li>
-              )}
-            </ul>
-            {/* <p><strong>Description:</strong> {selectedProject.description || "N/A"}</p> */}
-            <p>
-              <strong>Date:</strong>{" "}
-              {new Date(selectedProject.created_at).toLocaleDateString()}
-            </p>
-          </div>
+        <div className="bg-pink-100 p-4 rounded-2xl shadow text-center">
+          <h2 className="text-lg font-bold text-pink-700">Reviewed Projects</h2>
+          <p className="text-2xl font-semibold">{projects.filter(p => p.status === 'Reviewed').length}</p>
         </div>
-      )}
+        <div className="bg-green-100 p-4 rounded-2xl shadow text-center">
+          <h2 className="text-lg font-bold text-green-700">Pending Projects</h2>
+          <p className="text-2xl font-semibold">{projects.filter(p => p.status !== 'Reviewed').length}</p>
+        </div>
+      </div>
+
+      <input
+        type="text"
+        placeholder="Search by group number, title, or domain..."
+        className="w-full p-3 border border-gray-300 rounded-xl mb-6 focus:outline-none focus:ring-2 focus:ring-violet-500"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+
+      <div className="overflow-x-auto">
+        <table className="min-w-full table-auto border border-gray-200 shadow-sm rounded-xl">
+          <thead className="bg-violet-100 text-violet-800">
+            <tr>
+              <th className="px-4 py-3 text-left">Group No.</th>
+              <th className="px-4 py-3 text-left">Title</th>
+              <th className="px-4 py-3 text-left">Domain</th>
+              <th className="px-4 py-3 text-left">Category</th>
+              <th className="px-4 py-3 text-left">University</th>
+              <th className="px-4 py-3 text-left">Institute</th>
+              {/* <th className="px-4 py-3 text-left">Poster</th> */}
+              <th className="px-4 py-3 text-left">Participants</th>
+              <th className="px-4 py-3 text-left">Status</th>
+              <th className="px-4 py-3 text-left">Total Marks</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {filteredProjects.map((project) => (
+              <tr key={project.id}>
+                <td className="px-4 py-3">{project.group_number}</td>
+                <td className="px-4 py-3">{project.project_title}</td>
+                <td className="px-4 py-3">{project.domain}</td>
+                <td className="px-4 py-3">{project.category}</td>
+                <td className="px-4 py-3">{project.university}</td>
+                <td className="px-4 py-3">{project.institute_name}</td>
+                {/* <td className="px-4 py-3">
+                  {project.poster_url ? (
+                    <img src={project.poster_url} alt="Poster" className="h-12 rounded shadow" />
+                  ) : (
+                    '-' 
+                  )}
+                </td> */}
+                <td className="px-4 py-3">
+                  {project.participants?.map((p, i) => (
+                    <div key={i}>{p.name}</div>
+                  )) || '-'}
+                </td>
+                <td className="px-4 py-3">{project.status}</td>
+                <td className="px-4 py-3">{project.totalmarks ?? '-'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

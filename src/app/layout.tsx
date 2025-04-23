@@ -15,10 +15,11 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode; }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-gradient-to-br from-violet-50 to-pink-50 text-gray-800`}>
+      <body className={`${inter.className} bg-gradient-to-br from-violet-50 to-pink-50 text-gray-800 pb-8 `}>
         <SupabaseProvider>
           <Navbar />
           <main>{children}</main>
+          
         </SupabaseProvider>
       </body>
     </html>
