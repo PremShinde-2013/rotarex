@@ -8,7 +8,7 @@ import SupabaseProvider from "../../utils/SupabaseProvider"; // we'll create thi
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Ideas Meet Actions",
+  title: "Rotarex 2025",
   description: "Major & Mini Project Competition Registration",
 };
 
