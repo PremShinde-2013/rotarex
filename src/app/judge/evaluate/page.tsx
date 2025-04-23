@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../../../../utils/supabaseClient";
-import { useSession } from "@supabase/auth-helpers-react";
 
 export default function EvaluatePage() {
   const [groupCode, setGroupCode] = useState("");
   const [project, setProject] = useState<any>(null);
   const [marks, setMarks] = useState<number[]>(Array(16).fill(0));
   const [submitted, setSubmitted] = useState(false);
-  const session = useSession();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [role, setRole] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
 
   const handleGroupSearch = async () => {
     const { data, error } = await supabase
@@ -26,23 +27,6 @@ export default function EvaluatePage() {
     }
   };
 
-  const updateProjectMarksAndStatus = async (projectId: string, totalMarks: number) => {
-    const { data, error } = await supabase
-      .from("projects")
-      .update({
-        marks: totalMarks,
-        status: "Reviewed"
-      })
-      .eq("id", projectId);
-  
-    if (error) {
-      console.error("Failed to update project marks/status:", error.message);
-    } else {
-      console.log("Project updated successfully:", data);
-    }
-  };
-  
-
   const handleMarkChange = (index: number, value: number) => {
     const updatedMarks = [...marks];
     updatedMarks[index] = value;
@@ -50,17 +34,36 @@ export default function EvaluatePage() {
   };
 
   const handleSubmit = async () => {
-    if (!project || !session?.user?.id) {
+    if (!project) {
       console.warn("Missing project or session info");
       return;
     }
-  
+
     const total = marks.reduce((a, b) => a + b, 0);
     console.log("Submitting evaluation with total:", total);
-  
+
+    // Get judge id from users table based on current session user
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .select("id")
+      .single();
+
+    if (userError) {
+      console.error("Failed to fetch user id:", userError.message);
+      return;
+    }
+
+    const judgeId = userData?.id;
+
+    if (!judgeId) {
+      console.error("Judge ID is missing.");
+      return;
+    }
+
+    // Insert evaluation into the database
     const { error } = await supabase.from("evaluations").insert({
       project_id: project.id,
-      judge_id: session.user.id,
+      judge_id: judgeId,
       criteria_1a: marks[0],
       criteria_1b: marks[1],
       criteria_2a: marks[2],
@@ -79,18 +82,38 @@ export default function EvaluatePage() {
       criteria_8b: marks[15],
       total,
     });
-  
+
     if (error) {
       console.error("Insert error:", error);
       alert("Submission failed");
     } else {
-      await updateProjectMarksAndStatus(project.id, total);
+      // Optionally update project marks and status
+      const { error: updateError } = await supabase
+        .from("projects")
+        .update({
+          marks: total,
+          status: "Reviewed"
+        })
+        .eq("id", project.id);
+
+      if (updateError) {
+        console.error("Failed to update project:", updateError.message);
+      }
+
       alert("Evaluation submitted!");
       setSubmitted(true);
     }
   };
-  
-  
+
+  useEffect(() => {
+    const name = sessionStorage.getItem('userName'); // Get the name from sessionStorage
+    const userRole = sessionStorage.getItem('role');
+    if (name && userRole) {
+      setIsLoggedIn(true);
+      setRole(userRole);
+      setUserName(name); // Set the user's name here
+    }
+  }, []);
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
