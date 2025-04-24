@@ -15,8 +15,7 @@ export default function Navbar() {
   const [userName, setUserName] = useState<string | null>(null); // Change userEmail to userName
 
   useEffect(() => {
-    const name = sessionStorage.getItem("userName"); // Get the name from sessionStorage
-    const userRole = sessionStorage.getItem("role");
+
     if (name && userRole) {
       setIsLoggedIn(true);
       setRole(userRole);
@@ -25,14 +24,7 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = () => {
-    sessionStorage.removeItem("userName"); // Remove userName from sessionStorage
-    sessionStorage.removeItem("role");
-    setIsLoggedIn(false);
-    router.push("/");
-  };
 
-  const getRoleLabel = () => {
-    return role === "1" ? "Admin" : "Judge";
   };
 
   return (
@@ -60,9 +52,7 @@ export default function Navbar() {
 
         {/* Navigation */}
         <nav
-          className={`${
-            menuOpen ? "block" : "hidden"
-          } md:flex md:items-center md:space-x-6 space-y-4 md:space-y-0 mt-4 md:mt-0 text-sm md:text-base font-medium bg-violet-200 md:bg-transparent p-4 md:p-0 rounded-lg md:rounded-none absolute md:static right-4 top-16 md:top-auto`}
+\
         >
           {!isLoggedIn ? (
             <>
@@ -104,6 +94,25 @@ export default function Navbar() {
               >
                 Dashboard
               </Link>
+              {role === '1' && (
+                <Link
+                  href="/admin/leaderboard"
+                  className="bg-white text-violet-700 px-4 py-2 rounded-full hover:bg-pink-100 transition duration-200 shadow-sm text-center block"
+                >
+                  LeaderBoard
+                </Link>
+
+              )}
+              {role === '1' && (
+                <Link
+                  href="/admin/domain-leaderboard"
+                  className="bg-white text-violet-700 px-4 py-2 rounded-full hover:bg-pink-100 transition duration-200 shadow-sm text-center block"
+                >
+                  Domain Specific LeaderBoard
+                </Link>
+
+              )}
+
 
               <button
                 onClick={handleLogout}
@@ -115,6 +124,6 @@ export default function Navbar() {
           )}
         </nav>
       </div>
-    </header>
+
   );
 }

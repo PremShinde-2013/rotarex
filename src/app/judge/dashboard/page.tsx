@@ -142,11 +142,10 @@ export default function JudgeDashboard() {
                   <td className="px-6 py-4">{project.department}</td>
                   <td className="px-6 py-4">
                     <span
-                      className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                        project.status === 'Reviewed'
+                      className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${project.status === 'Reviewed'
                           ? 'bg-green-100 text-green-700'
                           : 'bg-yellow-100 text-yellow-700'
-                      }`}
+                        }`}
                     >
                       {project.status}
                     </span>

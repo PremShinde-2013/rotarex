@@ -5,22 +5,23 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../../utils/supabaseClient';
+import { exportToCSV, exportToExcel, exportToPDF } from '../../../../utils/exportHelpers';
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [userName, setUserName] = useState('');
-  const [projects, setProjects] = useState<{ 
-    id: number; 
-    group_number: number; 
-    project_title: string; 
-    domain: string; 
-    category: string; 
-    university: string; 
-    institute_name: string; 
-    poster_url?: string; 
-    participants?: { name: string }[]; 
-    status: string; 
-    totalmarks?: number; 
+  const [projects, setProjects] = useState<{
+    id: number;
+    group_number: number;
+    project_title: string;
+    domain: string;
+    category: string;
+    university: string;
+    institute_name: string;
+    poster_url?: string;
+    participants?: { name: string; }[];
+    status: string;
+    totalmarks?: number;
   }[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -49,6 +50,32 @@ export default function AdminDashboard() {
     project.project_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     project.domain.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  const handleExport = (format: string) => {
+    const simplifiedData = filteredProjects.map(project => ({
+      group_number: project.group_number,
+      project_title: project.project_title,
+      domain: project.domain,
+      category: project.category,
+      university: project.university,
+      institute_name: project.institute_name,
+      participants: project.participants?.map(p => p.name).join(', ') || '-',
+      status: project.status,
+      totalmarks: project.totalmarks ?? '-',
+    }));
+
+    switch (format) {
+      case 'csv':
+        exportToCSV(simplifiedData, 'evaluation_data');
+        break;
+      case 'excel':
+        exportToExcel(simplifiedData, 'evaluation_data');
+        break;
+      case 'pdf':
+        exportToPDF(filteredProjects, 'evaluation_data');
+        break;
+    }
+  };
+
 
   return (
     <div className="max-w-7xl mx-auto mt-20 px-6">
@@ -77,6 +104,19 @@ export default function AdminDashboard() {
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
+      <div className="flex justify-end mb-4 gap-4">
+        <select
+          className="p-2 border border-gray-300 rounded-xl focus:ring-violet-500"
+          onChange={(e) => handleExport(e.target.value)}
+          defaultValue=""
+        >
+          <option value="" disabled>Select export format</option>
+          <option value="csv">Export as CSV</option>
+          <option value="excel">Export as Excel</option>
+          <option value="pdf">Export as PDF</option>
+        </select>
+      </div>
+
 
       <div className="overflow-x-auto">
         <table className="min-w-full table-auto border border-gray-200 shadow-sm rounded-xl">
