@@ -31,7 +31,7 @@ export default function RegisterPage() {
     field: keyof typeof initialData,
     value: string | { name: string; email: string; contact: string }[]
   ) => {
-    setFormData((prev: any) => ({ ...prev, [field]: value }));
+    setFormData((prev: typeof initialData) => ({ ...prev, [field]: value }));
   };
 
   const handleParticipantChange = (

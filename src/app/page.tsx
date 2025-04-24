@@ -14,7 +14,7 @@ export default function HomePage() {
             // objectFit="cover"
             priority
           />
-          <div className="absolute inset-0 bg-black opacity-70" />
+          <div className="absolute inset-0 bg-black opacity-75 blur-lg " />
         </div>
 
         {/* Text Content */}
@@ -73,11 +73,11 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      <footer className="bg-white shadow-lg py-4 text-center">
+      {/* <footer className="bg-white shadow-lg py-4 text-center">
         <p className="text-sm text-gray-600">
           © 2025 Rotatex. All rights reserved.
         </p>
-      </footer>
+      </footer> */}
     </div>
   );
 }

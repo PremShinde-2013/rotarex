@@ -5,14 +5,27 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '../../../../utils/supabaseClient';
 import toast from 'react-hot-toast';
 
+type Project = {
+  id: string;
+  group_number: number;
+  group_title: string;
+  project_title: string;
+  category: string;
+  department: string;
+  domain: string;
+  status: string;
+  totalmarks?: number;
+};
+
 export default function EvaluateProject() {
   const router = useRouter();
   const [groupNumber, setGroupNumber] = useState('');
-  const [project, setProject] = useState<any>(null);
+  const [project, setProject] = useState<Project | null>(null);
   const [domain, setDomain] = useState('');
   const [judgeId, setJudgeId] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
   const [marks, setMarks] = useState({
     clarity_of_problem: '',
     social_relevance: '',
@@ -73,12 +86,14 @@ export default function EvaluateProject() {
       return;
     }
 
-    setProject(data);
+    setProject(data as Project);
   };
 
   const isFormComplete = Object.values(marks).every(val => val !== '' && !isNaN(Number(val)) && Number(val) >= 0 && Number(val) <= 10);
 
   const handleSubmit = async () => {
+    if (!project) return;
+
     setLoading(true);
     const total = Object.values(marks).reduce((sum, val) => sum + Number(val), 0);
 
@@ -116,9 +131,9 @@ export default function EvaluateProject() {
     setLoading(false);
   };
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setMarks({ ...marks, [name]: value });
+    setMarks(prev => ({ ...prev, [name]: value }));
   };
 
   const resetMarks = () => {
@@ -202,7 +217,7 @@ export default function EvaluateProject() {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto mt-20 px-6">
+    <div className="max-w-5xl mx-auto mt-20 px-6 h-full">
       <h1 className="text-3xl font-bold text-violet-700 mb-4">Evaluate Project</h1>
 
       <div className="flex gap-4 items-center mb-6">
@@ -228,6 +243,7 @@ export default function EvaluateProject() {
           <div className="bg-white shadow-md rounded-xl p-6 border border-gray-200 space-y-2 mb-6">
             <h2 className="text-2xl font-semibold text-violet-700">{project.project_title}</h2>
             <p><strong>Group No:</strong> {project.group_number}</p>
+            <p><strong>Group Title:</strong> {project.project_title}</p>
             <p><strong>Category:</strong> {project.category}</p>
             <p><strong>Department:</strong> {project.department}</p>
             <p><strong>Status:</strong> {project.status}</p>

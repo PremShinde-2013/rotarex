@@ -9,6 +9,8 @@ export default function JudgeDashboard() {
   const router = useRouter();
   const [userName, setUserName] = useState('');
   const [domain, setDomain] = useState('');
+  const [loading, setLoading] = useState(true);
+
   interface Project {
     group_number: number;
     project_title: string;
@@ -20,7 +22,6 @@ export default function JudgeDashboard() {
   }
 
   const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const role = sessionStorage.getItem('role');
@@ -72,10 +73,24 @@ export default function JudgeDashboard() {
   const reviewed = projects.filter(p => p.status === 'Reviewed').length;
   const pending = total - reviewed;
 
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-violet-500 border-dashed rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-violet-600 font-medium">Loading Judge Dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto mt-20 px-6">
-      <h1 className="text-4xl font-bold text-violet-700 mb-2">Judge Dashboard</h1>
-      <p className="text-lg text-gray-700 mb-4">Welcome, {userName}!</p>
+      <div className="text-center mb-10">
+        <h1 className="text-5xl font-extrabold text-violet-700 mb-2">Welcome to Rotarex 2025 🎉</h1>
+        <p className="text-xl text-gray-700">Judge Dashboard - Hello, <span className="font-semibold">{userName}</span>!</p>
+      </div>
+
       <div className="flex justify-end mb-4">
         <Link href="./evaluate">
           <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl shadow font-semibold">
@@ -103,10 +118,8 @@ export default function JudgeDashboard() {
         Assigned Domain: <span className="text-violet-600">{domain}</span>
       </h2>
 
-      {loading ? (
-        <p className="text-gray-500">Loading projects...</p>
-      ) : projects.length === 0 ? (
-        <p className="text-gray-500">No projects found for this domain.</p>
+      {projects.length === 0 ? (
+        <p className="text-gray-500 mt-4">No projects found for this domain.</p>
       ) : (
         <div className="overflow-x-auto mt-6 bg-white rounded-xl shadow-lg border border-gray-100">
           <table className="min-w-full text-sm text-left">

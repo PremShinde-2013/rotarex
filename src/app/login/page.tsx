@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '../../../utils/supabaseClient';
 import bcrypt from 'bcryptjs';
 import toast, { Toaster } from 'react-hot-toast';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -37,7 +37,6 @@ export default function LoginPage() {
       return;
     }
 
-    // Store email, role, and name in sessionStorage
     sessionStorage.setItem('userEmail', email);
     sessionStorage.setItem('role', data.role);
     sessionStorage.setItem('userName', data.name);
@@ -45,59 +44,67 @@ export default function LoginPage() {
     toast.success('Login successful!');
 
     setTimeout(() => {
-      router.refresh(); // Triggers a re-render of the layout
-      if (data.role === 1) {
-        router.push('/admin/dashboard');
-      } else {
-        router.push('/judge/dashboard');
-      }
+      router.refresh();
+      router.push(data.role === 1 ? '/admin/dashboard' : '/judge/dashboard');
     }, 1000);
-    
   };
 
-
   return (
-    <div className="max-w-md mx-auto mt-20 bg-white px-8 py-10 rounded-2xl shadow-xl border border-gray-100 relative">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-100 to-pink-100 px-4">
       <Toaster position="top-center" reverseOrder={false} />
-      <h2 className="text-3xl font-bold text-center text-violet-700 mb-6">
-        Welcome Back 👋
-      </h2>
+      <div className="bg-white rounded-3xl shadow-2xl p-10 w-full max-w-md">
+        <h2 className="text-4xl font-extrabold text-center text-violet-700 mb-2">
+          Welcome Back
+        </h2>
+        <p className="text-center text-gray-500 mb-6 text-sm">
+          Please login to your account
+        </p>
 
-      <div className="space-y-4">
-        <input
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+        <div className="space-y-5">
+          <div className="relative">
+            <label className="block mb-1 text-sm font-medium text-gray-700">Email</label>
+            <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-violet-500">
+              <Mail className="text-gray-400 mr-2" size={18} />
+              <input
+                className="w-full outline-none text-sm"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+          </div>
 
-        <div className="relative">
-          <input
-            className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm"
-            type={showPassword ? 'text' : 'password'}
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <div className="relative">
+            <label className="block mb-1 text-sm font-medium text-gray-700">Password</label>
+            <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-violet-500">
+              <Lock className="text-gray-400 mr-2" size={18} />
+              <input
+                className="w-full outline-none text-sm pr-8"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                className="absolute right-3 text-gray-400"
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
+
+          {error && <p className="text-red-500 text-xs font-medium">{error}</p>}
+
           <button
-            type="button"
-            className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
-            onClick={() => setShowPassword((prev) => !prev)}
+            onClick={handleLogin}
+            className="w-full py-3 bg-violet-600 text-white font-semibold rounded-lg hover:bg-violet-700 transition duration-200 shadow-md"
           >
-            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            Sign In
           </button>
         </div>
-
-        {error && (
-          <p className="text-red-500 text-sm mt-1 font-medium">{error}</p>
-        )}
-
-        <button
-          onClick={handleLogin}
-          className="w-full py-3 bg-gradient-to-r from-violet-600 to-pink-500 text-white font-semibold rounded-lg hover:scale-[1.02] transition duration-200 shadow-md"
-        >
-          Login
-        </button>
       </div>
     </div>
   );

@@ -6,15 +6,15 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '../../../utils/supabaseClient';
 import bcrypt from 'bcryptjs';
 import toast, { Toaster } from 'react-hot-toast';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Mail, User, Lock, Briefcase } from 'lucide-react';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
-  const [name, setName] = useState(''); // State for name
+  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState('1'); // Default to admin
+  const [role, setRole] = useState('1');
   const [domain, setDomain] = useState('');
   const router = useRouter();
 
@@ -49,7 +49,7 @@ export default function SignupPage() {
     const { data, error: insertError } = await supabase.from('users').insert([
       {
         email,
-        name, // Insert the name into the database
+        name,
         password: hashedPassword,
         role: Number(role),
         domain: role === '0' ? domain : null,
@@ -66,90 +66,131 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-20 bg-white px-8 py-10 rounded-2xl shadow-xl border border-gray-100 relative">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-100 to-pink-100 px-4">
       <Toaster position="top-center" reverseOrder={false} />
-      <h2 className="text-3xl font-bold text-center text-violet-700 mb-6">
-        Create Your Account ✨
-      </h2>
+      <div className="bg-white rounded-3xl shadow-2xl p-10 w-full max-w-md">
+        <h2 className="text-4xl font-extrabold text-center text-violet-700 mb-2">
+          Create Account
+        </h2>
+        <p className="text-center text-gray-500 mb-6 text-sm">
+          Get started by filling in your details
+        </p>
 
-      <div className="space-y-4">
-        {/* Name Input Field */}
-        <input
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-
-        <input
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-
-        <div className="relative">
-          <input
-            type={showPassword ? 'text' : 'password'}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm pr-10"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <div
-            className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-500"
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+        <div className="space-y-5">
+          {/* Name */}
+          <div className="relative">
+            <label className="text-sm font-medium text-gray-700">Name</label>
+            <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-violet-500">
+              <User size={18} className="text-gray-400 mr-2" />
+              <input
+                type="text"
+                placeholder="Full Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full outline-none text-sm"
+              />
+            </div>
           </div>
-        </div>
 
-        <div className="relative">
-          <input
-            type={showPassword ? 'text' : 'password'}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm pr-10"
-            placeholder="Confirm Password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
-          <div
-            className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-500"
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          {/* Email */}
+          <div className="relative">
+            <label className="text-sm font-medium text-gray-700">Email</label>
+            <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-violet-500">
+              <Mail size={18} className="text-gray-400 mr-2" />
+              <input
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full outline-none text-sm"
+              />
+            </div>
           </div>
-        </div>
 
-        <select
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm bg-white"
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-        >
-          <option value="1">Admin</option>
-          <option value="0">Judge</option>
-        </select>
+          {/* Password */}
+          <div className="relative">
+            <label className="text-sm font-medium text-gray-700">Password</label>
+            <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-violet-500">
+              <Lock size={18} className="text-gray-400 mr-2" />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full outline-none text-sm pr-8"
+              />
+              <button
+                type="button"
+                className="absolute right-3 text-gray-400"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
 
-        {role === '0' && (
-          <select
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm bg-white"
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
+          {/* Confirm Password */}
+          <div className="relative">
+            <label className="text-sm font-medium text-gray-700">Confirm Password</label>
+            <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-violet-500">
+              <Lock size={18} className="text-gray-400 mr-2" />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full outline-none text-sm pr-8"
+              />
+              <button
+                type="button"
+                className="absolute right-3 text-gray-400"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
+
+          {/* Role */}
+          <div>
+            <label className="text-sm font-medium text-gray-700">Role</label>
+            <select
+              className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm bg-white"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+            >
+              <option value="1">Admin</option>
+              <option value="0">Judge</option>
+            </select>
+          </div>
+
+          {/* Domain (if Judge) */}
+          {role === '0' && (
+            <div>
+              <label className="text-sm font-medium text-gray-700">Domain</label>
+              <select
+                className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm bg-white"
+                value={domain}
+                onChange={(e) => setDomain(e.target.value)}
+              >
+                <option value="">Select Domain</option>
+                {domains.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Sign Up Button */}
+          <button
+            onClick={handleSignup}
+            className="w-full py-3 bg-gradient-to-r from-violet-600 to-pink-500 text-white font-semibold rounded-lg hover:scale-[1.02] transition duration-200 shadow-md"
           >
-            <option value="">Select Domain</option>
-            {domains.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
-        )}
-
-        <button
-          onClick={handleSignup}
-          className="w-full py-3 bg-gradient-to-r from-violet-600 to-pink-500 text-white font-semibold rounded-lg hover:scale-[1.02] transition duration-200 shadow-md"
-        >
-          Sign Up
-        </button>
+            Sign Up
+          </button>
+        </div>
       </div>
     </div>
   );
