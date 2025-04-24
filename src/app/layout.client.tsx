@@ -62,7 +62,7 @@ export default function ClientLayout({
             {isLoggedIn ? (
               <button
                 onClick={handleLogout}
-                className="relative inline-flex items-center justify-center px-6 py-2 rounded-full bg-white text-red-600 font-semibold shadow-md transition-all duration-300 ease-in-out hover:bg-red-50 hover:shadow-lg hover:-translate-y-0.5 active:scale-95"
+                className="relative inline-flex items-center justify-center px-6 py-2 rounded-md bg-white text-pink-600 font-semibold shadow-md transition-all duration-300 ease-in-out hover:bg-pink-50 hover:shadow-lg hover:-translate-y-0.5 active:scale-95"
               >
                 Logout
               </button>
