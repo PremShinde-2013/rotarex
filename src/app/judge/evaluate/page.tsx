@@ -32,6 +32,11 @@ export default function EvaluateProject() {
     research: '',
   });
 
+  const [totalMarks, setTotalMarks] = useState<number | null>(null);
+  const [totalScore, setTotalScore] = useState(0);
+
+  const [showScoreCard, setShowScoreCard] = useState(false);
+
   useEffect(() => {
     const role = sessionStorage.getItem('role');
     const email = sessionStorage.getItem('userEmail');
@@ -81,6 +86,12 @@ export default function EvaluateProject() {
   const handleSubmit = async () => {
     setLoading(true);
     const total = Object.values(marks).reduce((sum, val) => sum + Number(val), 0);
+    setTotalScore(total);        // set total score
+    setShowScoreCard(true);
+    setTimeout(() => {
+      setShowScoreCard(false);   // hide after 5 seconds
+    }, 5000);
+
 
     const { error } = await supabase.from('evaluations').insert([
       {
@@ -261,17 +272,27 @@ export default function EvaluateProject() {
             <button
               onClick={handleSubmit}
               disabled={!isFormComplete || loading}
-              className={`mt-6 px-6 py-3 rounded-xl font-semibold text-white ${
-                !isFormComplete || loading
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-green-600 hover:bg-green-700'
-              }`}
+              className={`mt-6 px-6 py-3 rounded-xl font-semibold text-white ${!isFormComplete || loading
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-green-600 hover:bg-green-700'
+                }`}
             >
               {loading ? 'Submitting...' : 'Submit Evaluation'}
             </button>
           </div>
+          {showScoreCard && (
+            <div className="fixed top-20 right-5 bg-white shadow-2xl border border-violet-300 rounded-xl px-6 py-4 z-50 animate-fade-pop">
+              <h3 className="text-xl font-bold text-violet-700">Evaluation Submitted 🎉</h3>
+              Team Number: <span className="font-bold text-violet-600">{project.group_number}</span>
+              <p className="mt-2 text-gray-700">Total Score: <span className="font-bold text-violet-600">{totalScore} / 100</span></p>
+            </div>
+          )}
         </>
       )}
+
+
+
     </div>
+
   );
 }
