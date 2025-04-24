@@ -45,12 +45,14 @@ export default function LoginPage() {
     toast.success('Login successful!');
 
     setTimeout(() => {
+      router.refresh(); // Triggers a re-render of the layout
       if (data.role === 1) {
         router.push('/admin/dashboard');
       } else {
         router.push('/judge/dashboard');
       }
     }, 1000);
+    
   };
 
 

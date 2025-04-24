@@ -1,17 +1,27 @@
-// import Image from "next/image";
+import Image from "next/image";
 
 export default function HomePage() {
   return (
-    <div className="md:px-12 bg-violet-200 pb-10" >
+    <div className="md:px-12 bg-violet-200 pb-10">
       {/* Hero Section */}
-      <section className="relative h-[400px]">
+      <section className="relative w-full h-screen overflow-hidden">
         {/* Background Image */}
+        <div className="absolute inset-0 m-4">
+          <Image
+            src="/page.jpeg" // Replace with your image path
+            alt="Background"
+            layout="fill"
+            // objectFit="cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-black opacity-70" />
+        </div>
 
         {/* Text Content */}
-        <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 drop-shadow-xl text-shadow-gray-600 text-center leading-snug">
+        <div className="relative z-10 flex flex-col items-center justify-center h-full text-center text-white px-4">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 drop-shadow-xl leading-snug">
             WELCOME TO THE{" "}
-            <span className="relative inline-block text-violet-900">
+            <span className="relative inline-block text-white">
               <span className="relative z-10">ROTAREX-2025</span>
               <span
                 className="absolute left-0 bottom-1 w-full h-2 bg-gradient-to-r from-pink-400 to-violet-600 rounded-md opacity-70 z-0"
@@ -20,21 +30,22 @@ export default function HomePage() {
             </span>
           </h2>
 
-          <p className="text-lg md:text-xl max-w-2xl drop-shadow-md">
+          <p className="text-lg md:text-xl max-w-2xl drop-shadow-md text-white bg-violet-600 bg-opacity-80 rounded-full p-2">
             THE STATE LEVEL PROJECT EXHIBITION & COMPETITION
           </p>
 
           <a
-            href="/register"
+            href="/login"
             className="inline-block bg-gradient-to-r from-violet-600 to-pink-500 text-white px-8 py-3 rounded-full text-lg font-semibold shadow-md hover:scale-105 transform transition duration-300 mt-6"
           >
-            🚀 Register Now
+            🚀 Evaluate
           </a>
         </div>
       </section>
+
       <span className="h-5 bg-black w-full"></span>
       {/* Competition Details Section */}
-      <section className="mt-12 bg-white p-6 md:p-10 shadow-xl rounded-2xl border-l-8 border-violet-600 max-w-5xl mx-auto">
+      <section className="mt-12 bg-white p-6 md:p-10 shadow-xl rounded-2xl border-l-8 border-violet-600 max-w-5xl mx-auto m-4">
         <h2 className="text-3xl font-bold text-violet-700 mb-6 text-center">
           🏆 Competition Details
         </h2>
@@ -62,6 +73,11 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      <footer className="bg-white shadow-lg py-4 text-center">
+        <p className="text-sm text-gray-600">
+          © 2025 Rotatex. All rights reserved.
+        </p>
+      </footer>
     </div>
   );
 }
