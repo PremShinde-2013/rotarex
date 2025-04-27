@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { parse } from "papaparse";
+import { UploadCloud } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 const steps = ["Project", "Institute", "Participants", "Review"];
 
 const initialData = {
+  group_number: "",
   project_title: "",
   domain: "",
   category: "",
@@ -26,6 +29,7 @@ export default function RegisterPage() {
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState(initialData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (
     field: keyof typeof initialData,
@@ -54,6 +58,7 @@ export default function RegisterPage() {
 
   const isFormComplete = () => {
     const {
+      group_number,
       project_title,
       domain,
       category,
@@ -68,6 +73,7 @@ export default function RegisterPage() {
     const firstParticipant = participants[0];
 
     return (
+      group_number &&
       project_title.trim() &&
       domain &&
       category &&
@@ -87,6 +93,7 @@ export default function RegisterPage() {
       setIsSubmitting(true);
 
       const {
+        group_number,
         project_title,
         domain,
         category,
@@ -113,6 +120,7 @@ export default function RegisterPage() {
       const { data: projectData, error: projectError } = await supabase
         .from("projects")
         .insert({
+          group_number,
           project_title,
           domain,
           category,
@@ -175,12 +183,190 @@ export default function RegisterPage() {
       setIsSubmitting(false);
     }
   };
+  const handleCSVImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
+    try {
+      setIsSubmitting(true);
+
+      parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: async (results) => {
+          if (!results.data || results.data.length === 0) {
+            alert("CSV file is empty or couldn't be parsed");
+            return;
+          }
+
+          let successCount = 0;
+          let errorCount = 0;
+          const errors: string[] = [];
+
+          for (const [index, row] of (results.data as { [key: string]: string }[]).entries()) {
+            const rowNumber = index + 1;
+            try {
+              // Validate required fields with better error messages
+              if (!row.project_title) {
+                throw new Error("Missing project title");
+              }
+              if (!row.domain) {
+                throw new Error("Missing domain");
+              }
+              if (!row.category) {
+                throw new Error("Missing category");
+              }
+
+              // Validate at least one participant
+              if (
+                !row.participant1_name ||
+                !row.participant1_email ||
+                !row.participant1_contact
+              ) {
+                throw new Error(
+                  "Missing data for Participant 1 (all fields required)"
+                );
+              }
+
+              // Prepare project data with type safety
+              const projectData = {
+                group_number: row.group_number ? String(row.group_number) : "",
+                project_title: String(row.project_title),
+                domain: String(row.domain),
+                category: String(row.category),
+                degree_type: row.degree_type ? String(row.degree_type) : "",
+                department: row.department ? String(row.department) : "",
+                institute_name: row.institute_name
+                  ? String(row.institute_name)
+                  : "",
+                institute_address: row.institute_address
+                  ? String(row.institute_address)
+                  : "",
+                university: row.university ? String(row.university) : "",
+                status: "Pending",
+              };
+
+              // Insert project
+              const { data: project, error: projectError } = await supabase
+                .from("projects")
+                .insert(projectData)
+                .select("id")
+                .single();
+
+              if (projectError)
+                throw new Error(
+                  `Project insert failed: ${projectError.message}`
+                );
+              if (!project) throw new Error("Project insert returned no data");
+
+              // Process participants
+              const participants = [];
+              for (let i = 1; i <= 4; i++) {
+                const name = row[`participant${i}_name`]?.toString();
+                const email = row[`participant${i}_email`]?.toString();
+                const contact = row[`participant${i}_contact`]?.toString();
+
+                if (name && email && contact) {
+                  participants.push({
+                    project_id: project.id,
+                    name,
+                    email,
+                    contact,
+                  });
+                }
+              }
+
+              if (participants.length > 0) {
+                const { error: participantsError } = await supabase
+                  .from("participants")
+                  .insert(participants);
+                if (participantsError)
+                  throw new Error(
+                    `Participants insert failed: ${participantsError.message}`
+                  );
+              }
+
+              successCount++;
+            } catch (error) {
+              errorCount++;
+              const errorMsg =
+                error instanceof Error ? error.message : String(error);
+              errors.push(`Row ${rowNumber}: ${errorMsg}`);
+              console.error(
+                `Row ${rowNumber} Error:`,
+                errorMsg,
+                "Row Data:",
+                row
+              );
+            }
+          }
+
+          // Show results
+          if (errorCount === 0) {
+            alert(`Successfully imported ${successCount} projects!`);
+          } else {
+            alert(
+              `Import Results:\n\n` +
+                `✅ Success: ${successCount}\n` +
+                `❌ Failed: ${errorCount}\n\n` +
+                `First 5 errors:\n${errors.slice(0, 5).join("\n")}`
+            );
+          }
+        },
+        error: (error) => {
+          alert(`CSV Parse Error: ${error.message}`);
+          console.error("CSV Parse Error:", error);
+        },
+      });
+    } catch (error) {
+      alert(
+        `Import Failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+      console.error("Import Error:", error);
+    } finally {
+      setIsSubmitting(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  // Add this to your return statement, near the top of the form
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white shadow-md rounded-xl space-y-6">
+    <div className="max-w-3xl mx-auto p-6 bg-white shadow-md rounded-xl space-y-6 mt-6">
       <h2 className="text-2xl font-bold text-center text-violet-600">
         Project Registration
       </h2>
+
+      {/* Add this CSV import section */}
+      <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 bg-gray-50 p-8 rounded-2xl shadow-sm hover:shadow-md transition duration-300 ease-in-out text-center">
+      <UploadCloud className="h-12 w-12 text-blue-500 mb-4" />
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept=".csv"
+        onChange={handleCSVImport}
+        className="hidden"
+        disabled={isSubmitting}
+      />
+      <button
+        onClick={() => fileInputRef.current?.click()}
+        className="bg-blue-600 text-white font-semibold px-6 py-3 rounded-xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? "Importing..." : "Import from CSV"}
+      </button>
+      <p className="mt-4 text-sm text-gray-600">
+        Need a format?{" "}
+        <a
+          href="/sample-import.csv"
+          download
+          className="text-blue-600 hover:underline font-medium"
+        >
+          Download CSV Template
+        </a>
+      </p>
+    </div>
 
       {/* STEP INDICATOR */}
       <div className="flex justify-between text-sm font-medium mb-4">
@@ -199,6 +385,15 @@ export default function RegisterPage() {
       {/* STEP 1: Project Details */}
       {step === 0 && (
         <div className="space-y-4">
+          <input
+            type="number"
+            placeholder="Group Number *"
+            value={formData.group_number}
+            onChange={(e) => handleChange("group_number", e.target.value)}
+            className="w-full border px-3 py-2 rounded"
+            required
+            min="1"
+          />
           <input
             type="text"
             placeholder="Project Title *"
