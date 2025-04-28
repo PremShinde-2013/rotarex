@@ -89,14 +89,15 @@ export default function JudgeDashboard() {
       <div className="text-center mb-10">
         <h1 className="text-5xl font-extrabold text-violet-700 mb-2">Welcome to Rotarex 2025 🎉</h1>
         <p className="text-xl text-gray-700">Judge Dashboard - Hello, <span className="font-semibold">{userName}</span>!</p>
-      </div>
-
-      <div className="flex justify-end mb-4">
         <Link href="./evaluate">
-          <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl shadow font-semibold">
+          <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 mt-4 rounded-xl shadow font-semibold">
             ✅ Evaluated Projects
           </button>
         </Link>
+      </div>
+
+      <div className="flex justify-end mb-4">
+        
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">

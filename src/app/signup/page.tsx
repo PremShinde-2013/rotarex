@@ -67,7 +67,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-100 to-pink-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-100 to-pink-100 px-4 pb-6 pt-6">
       <Toaster position="top-center" reverseOrder={false} />
       <div className="bg-white rounded-3xl shadow-2xl p-10 w-full max-w-md">
         <h2 className="text-4xl font-extrabold text-center text-violet-700 mb-2">
@@ -191,6 +191,15 @@ export default function SignupPage() {
           >
             Sign Up
           </button>
+
+          <div className="text-center text-sm text-gray-500 mt-4">
+            <p className="text-center text-sm text-gray-500">
+              Already have an account?{' '}
+              <a href="/login" className="text-violet-600 font-semibold">
+                Sign In
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </div>

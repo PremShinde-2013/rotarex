@@ -4,6 +4,9 @@ import { useState, useRef } from "react";
 import { parse } from "papaparse";
 import { UploadCloud } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import * as XLSX from "xlsx";
+// import { group } from "console";
+// import { register } from "module";
 
 const steps = ["Project", "Institute", "Participants", "Review"];
 
@@ -17,12 +20,18 @@ const initialData = {
   institute_name: "",
   institute_address: "",
   university: "",
-  participants: [
-    { name: "", email: "", contact: "" },
-    { name: "", email: "", contact: "" },
-    { name: "", email: "", contact: "" },
-    { name: "", email: "", contact: "" },
-  ],
+  participant_1_name: "",
+  participant_1_email: "",
+  participant_1_contact: "",
+  participant_2_name: "",
+  participant_2_email: "",
+  participant_2_contact: "",
+  participant_3_name: "",
+  participant_4_name: "",
+  additional_facilities: "",
+  payment_utr: "",
+  payment_transaction_number: "",
+  transaction_date: "",
 };
 
 export default function RegisterPage() {
@@ -38,15 +47,7 @@ export default function RegisterPage() {
     setFormData((prev: typeof initialData) => ({ ...prev, [field]: value }));
   };
 
-  const handleParticipantChange = (
-    index: number,
-    field: keyof (typeof initialData.participants)[0],
-    value: string
-  ) => {
-    const updated = [...formData.participants];
-    updated[index][field] = value;
-    setFormData((prev) => ({ ...prev, participants: updated }));
-  };
+  // Removed unused handleParticipantChange function to resolve the error.
 
   const handleNext = () => {
     if (step < steps.length - 1) setStep(step + 1);
@@ -67,10 +68,23 @@ export default function RegisterPage() {
       institute_name,
       institute_address,
       university,
-      participants,
+      participant_1_name,
+      participant_1_email,
+      participant_1_contact,
+      participant_2_name,
+      participant_2_email,
+      participant_2_contact,
+      participant_3_name,
+      participant_4_name,
+      additional_facilities,
+      payment_utr,
+      payment_transaction_number,
+      transaction_date,
+
+      // participants,
     } = formData;
 
-    const firstParticipant = participants[0];
+    // const firstParticipant = participants[0];
 
     return (
       group_number &&
@@ -82,13 +96,29 @@ export default function RegisterPage() {
       institute_name.trim() &&
       institute_address.trim() &&
       university.trim() &&
-      firstParticipant.name.trim() &&
-      firstParticipant.email.trim() &&
-      firstParticipant.contact.trim()
+      participant_1_name.trim() &&
+      participant_1_email.trim() &&
+      participant_1_contact.trim() &&
+      participant_2_name.trim() &&
+      participant_2_email.trim() &&
+      participant_2_contact.trim() &&
+      participant_3_name.trim() &&
+      participant_4_name.trim() &&
+      additional_facilities.trim() &&
+      payment_utr.trim() &&
+      payment_transaction_number.trim() &&
+      transaction_date
+      // firstParticipant.name.trim() &&
+      // firstParticipant.email.trim() &&
+      // firstParticipant.contact.trim()
     );
   };
 
   const handleSubmit = async () => {
+    if (!isFormComplete()) {
+      alert("Please complete all required fields before submitting.");
+      return;
+    }
     try {
       setIsSubmitting(true);
 
@@ -102,19 +132,31 @@ export default function RegisterPage() {
         institute_name,
         institute_address,
         university,
-        participants,
+        // participants,
+        participant_1_name,
+        participant_1_email,
+        participant_1_contact,
+        participant_2_name,
+        participant_2_email,
+        participant_2_contact,
+        participant_3_name,
+        participant_4_name,
+        additional_facilities,
+        payment_utr,
+        payment_transaction_number,
+        transaction_date,
       } = formData;
 
       // Ensure at least one participant is filled
-      if (
-        !participants[0].name ||
-        !participants[0].email ||
-        !participants[0].contact
-      ) {
-        alert("Participant 1 is required.");
-        setIsSubmitting(false);
-        return;
-      }
+      // if (
+      //   !participants[0].name ||
+      //   !participants[0].email ||
+      //   !participants[0].contact
+      // ) {
+      //   alert("Participant 1 is required.");
+      //   setIsSubmitting(false);
+      //   return;
+      // }
 
       // 1. First, insert the project to get its ID
       const { data: projectData, error: projectError } = await supabase
@@ -129,9 +171,21 @@ export default function RegisterPage() {
           institute_name,
           institute_address,
           university,
-          participants: participants.filter(
-            (p) => p.name && p.email && p.contact
-          ),
+          participant_1_name,
+          participant_1_email,
+          participant_1_contact,
+          participant_2_name,
+          participant_2_email,
+          participant_2_contact,
+          participant_3_name,
+          participant_4_name,
+          additional_facilities,
+          payment_utr,
+          payment_transaction_number,
+          transaction_date,
+          // participants: participants.filter(
+          //   (p) => p.name && p.email && p.contact
+          // ),
         })
         .select("id");
 
@@ -145,33 +199,33 @@ export default function RegisterPage() {
       }
 
       // Extract the new project ID
-      const projectId = projectData[0].id;
+      // const projectId = projectData[0].id;
 
-      // 2. Insert participants with reference to the project
-      const validParticipants = participants.filter(
-        (p) => p.name && p.email && p.contact
-      );
+      // // 2. Insert participants with reference to the project
+      // const validParticipants = participants.filter(
+      //   (p) => p.name && p.email && p.contact
+      // );
 
-      if (validParticipants.length > 0) {
-        // Prepare participants data for insertion with project_id
-        const participantsToInsert = validParticipants.map((p) => ({
-          project_id: projectId,
-          name: p.name,
-          email: p.email,
-          contact: p.contact,
-        }));
+      // if (validParticipants.length > 0) {
+      //   // Prepare participants data for insertion with project_id
+      //   const participantsToInsert = validParticipants.map((p) => ({
+      //     project_id: projectId,
+      //     name: p.name,
+      //     email: p.email,
+      //     contact: p.contact,
+      //   }));
 
-        const { error: participantsError } = await supabase
-          .from("participants")
-          .insert(participantsToInsert);
+      //   const { error: participantsError } = await supabase
+      //     .from("participants")
+      //     .insert(participantsToInsert);
 
-        if (participantsError) {
-          console.error("Participants Insert Error:", participantsError);
-          alert("Project saved but there was an issue saving participants.");
-          setIsSubmitting(false);
-          return;
-        }
-      }
+      //   if (participantsError) {
+      //     console.error("Participants Insert Error:", participantsError);
+      //     alert("Project saved but there was an issue saving participants.");
+      //     setIsSubmitting(false);
+      //     return;
+      //   }
+      // }
 
       alert("Project registered successfully!");
       setFormData(initialData);
@@ -183,192 +237,152 @@ export default function RegisterPage() {
       setIsSubmitting(false);
     }
   };
+
+  // import { parse } from "papaparse";
+  // import * as XLSX from "xlsx";
+  
   const handleCSVImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
+  
     try {
       setIsSubmitting(true);
-
-      parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: async (results) => {
-          if (!results.data || results.data.length === 0) {
-            alert("CSV file is empty or couldn't be parsed");
-            return;
+  
+      const extension = file.name.split(".").pop()?.toLowerCase();
+      let parsedData: { [key: string]: string }[] = [];
+  
+      if (extension === "csv") {
+        // Parse CSV
+        await new Promise<void>((resolve, reject) => {
+          parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => {
+              if (!results.data || results.data.length === 0) {
+                reject(new Error("CSV file is empty or couldn't be parsed"));
+              } else {
+                parsedData = results.data as { [key: string]: string }[];
+                resolve();
+              }
+            },
+            error: (error) => {
+              reject(new Error(`CSV Parse Error: ${error.message}`));
+            },
+          });
+        });
+      } else if (extension === "xlsx" || extension === "xlsm") {
+        // Parse Excel
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data, { type: "array" });
+  
+        for (const sheetName of workbook.SheetNames) {
+          const worksheet = workbook.Sheets[sheetName];
+          const sheetData = XLSX.utils.sheet_to_json(worksheet, {
+            defval: "",
+            blankrows: false,
+          }) as { [key: string]: string }[];
+          parsedData.push(...sheetData);
+        }
+  
+        if (parsedData.length === 0) {
+          throw new Error("Excel file is empty or couldn't be parsed");
+        }
+      } else {
+        alert("Unsupported file type. Please upload a CSV or XLSM/XLSX file.");
+        return;
+      }
+  
+      let successCount = 0;
+      let errorCount = 0;
+      const errors: string[] = [];
+  
+      for (const [index, row] of parsedData.entries()) {
+        const rowNumber = index + 1;
+  
+        try {
+          // Skip empty rows
+          if (!row || Object.keys(row).length === 0) continue;
+  
+          // Basic required fields
+          if (!row["Title of Project"]?.trim()) throw new Error("Missing project title");
+          if (!row["Domain of the Project"]?.trim()) throw new Error("Missing domain");
+          if (!row["Category-Major Project"]?.trim()) throw new Error("Missing category");
+  
+          if (
+            !row["Participant 1: Name"]?.trim() ||
+            !row["Participant 1: Email-id"]?.trim() ||
+            !row["Participant 1: Contact No."]?.trim()
+          ) {
+            throw new Error("Missing data for Participant 1 (all fields required)");
           }
-
-          let successCount = 0;
-          let errorCount = 0;
-          const errors: string[] = [];
-
-          for (const [index, row] of (
-            results.data as { [key: string]: string }[]
-          ).entries()) {
-            const rowNumber = index + 1;
-            try {
-              // Validate required fields with better error messages
-              if (!row.project_title) {
-                throw new Error("Missing project title");
-              }
-              if (!row.domain) {
-                throw new Error("Missing domain");
-              }
-              if (!row.category) {
-                throw new Error("Missing category");
-              }
-
-              // Validate at least one participant
-              if (
-                !row.participant1_name ||
-                !row.participant1_email ||
-                !row.participant1_contact
-              ) {
-                throw new Error(
-                  "Missing data for Participant 1 (all fields required)"
-                );
-              }
-
-              // Prepare project data with type safety
-              const projectData = {
-                group_number: row.group_number ? String(row.group_number) : "",
-                domain: row.domain ? String(row.domain) : "",
-                category: row.category ? String(row.category) : "",
-                project_title: row.project_title
-                  ? String(row.project_title)
-                  : "",
-                degree_type: row.degree_type ? String(row.degree_type) : "",
-                department: row.department ? String(row.department) : "",
-                institute_name: row.institute_name
-                  ? String(row.institute_name)
-                  : "",
-                institute_address: row.institute_address
-                  ? String(row.institute_address)
-                  : "",
-                university: row.university ? String(row.university) : "",
-                participant_1_name: row.participant1_name
-                  ? String(row.participant1_name)
-                  : "",
-                participant_1_email: row.participant1_email
-                  ? String(row.participant1_email)
-                  : "",
-                participant_1_contact: row.participant1_contact
-                  ? String(row.participant1_contact)
-                  : "",
-                participant_2_name: row.participant2_name
-                  ? String(row.participant2_name)
-                  : "",
-                participant_2_email: row.participant2_email
-                  ? String(row.participant2_email)
-                  : "",
-                participant_2_contact: row.participant2_contact
-                  ? String(row.participant2_contact)
-                  : "",
-                participant_3_name: row.participant3_name
-                  ? String(row.participant3_name)
-                  : "",
-                participant_4_name: row.participant4_name
-                  ? String(row.participant4_name)
-                  : "",
-
-                additional_faculty: row.additional_faculty
-                  ? String(row.additional_faculty)
-                  : "",
-                payment_utr: row.payment_utr ? String(row.payment_utr) : "",
-                payment_transaction_number: row.payment_transaction_number
-                  ? String(row.payment_transaction_number)
-                  : "",
-                transaction_date: row.payment_date
-                  ? new Date(row.payment_date).toISOString().slice(0, 10)
-                  : null,
-
-                registration_sign: row.registration_sign
-                  ? String(row.registration_sign)
-                  : "",
-                certificate_issued: row.certificate_issued
-                  ? String(row.certificate_issued)
-                  : "",
-                status: "Pending",
-              };
-
-              // Insert project
-              const { data: project, error: projectError } = await supabase
-                .from("projects")
-                .insert(projectData)
-                .select("id")
-                .single();
-
-              if (projectError)
-                throw new Error(
-                  `Project insert failed: ${projectError.message}`
-                );
-              if (!project) throw new Error("Project insert returned no data");
-
-              // Process participants
-              const participants = [];
-              for (let i = 1; i <= 4; i++) {
-                const name = row[`participant${i}_name`]?.toString();
-                const email = row[`participant${i}_email`]?.toString();
-                const contact = row[`participant${i}_contact`]?.toString();
-
-                if (name && email && contact) {
-                  participants.push({
-                    project_id: project.id,
-                    name,
-                    email,
-                    contact,
-                  });
-                }
-              }
-
-              if (participants.length > 0) {
-                const { error: participantsError } = await supabase
-                  .from("participants")
-                  .insert(participants);
-                if (participantsError)
-                  throw new Error(
-                    `Participants insert failed: ${participantsError.message}`
-                  );
-              }
-
-              successCount++;
-            } catch (error) {
-              errorCount++;
-              const errorMsg =
-                error instanceof Error ? error.message : String(error);
-              errors.push(`Row ${rowNumber}: ${errorMsg}`);
-              console.error(
-                `Row ${rowNumber} Error:`,
-                errorMsg,
-                "Row Data:",
-                row
-              );
-            }
-          }
-
-          // Show results
-          if (errorCount === 0) {
-            alert(`Successfully imported ${successCount} projects!`);
-          } else {
-            alert(
-              `Import Results:\n\n` +
-                `✅ Success: ${successCount}\n` +
-                `❌ Failed: ${errorCount}\n\n` +
-                `First 5 errors:\n${errors.slice(0, 5).join("\n")}`
-            );
-          }
-        },
-        error: (error) => {
-          alert(`CSV Parse Error: ${error.message}`);
-          console.error("CSV Parse Error:", error);
-        },
-      });
+  
+          const projectData = {
+            group_number: row["Project Id"]?.trim() || "",
+            register_email: row["Email Id"]?.trim() || "",
+            domain: row["Domain of the Project"]?.trim() || "",
+            category: row["Category-Major Project"]?.trim() || "",
+            project_title: row["Title of Project"]?.trim() || "",
+            degree_type: row["Degree/Diploma"]?.trim() || "",
+            department: row["Name of Department"]?.trim() || "",
+            institute_name: row["Name of the Institute"]?.trim() || "",
+            institute_address: row["Address of the Institute"]?.trim() || "",
+            university: row["Affiliated University"]?.trim() || "",
+            participant_1_name: row["Participant 1: Name"]?.trim() || "",
+            participant_1_email: row["Participant 1: Email-id"]?.trim() || "",
+            participant_1_contact: row["Participant 1: Contact No."]?.trim() || "",
+            participant_2_name: row["Participant 2:  Name"]?.trim() || "",
+            participant_2_email: row["Participant 2: Email-id "]?.trim() || "", // Note the extra space after 'id '
+            participant_2_contact: row["Participant 2: Contact No."]?.trim() || "",
+            participant_3_name: row["Participant 3: Name"]?.trim() || "",
+            participant_4_name: row["Participant 4:  Name"]?.trim() || "",
+            additional_facilities: row["Additional Technical Facilities (If required any)"]?.trim() || "",
+            payment_utr: row["Payment details: UTR."]?.trim() || "",
+            payment_transaction_number: row["Payment details: Transaction No."]?.trim() || "",
+            transaction_date: row["Payment details: Date of Transaction"]
+              ? new Date(row["Payment details: Date of Transaction"]).toISOString().slice(0, 10)
+              : null,
+            registration_sign: row["Registration sign"]?.trim() || "",
+            certificate_issued: row["Certificate Issued Sign"]?.trim() || "",
+            status: "Pending",
+          };
+  
+          // Insert Project
+          const { data: project, error: projectError } = await supabase
+            .from("projects")
+            .insert(projectData)
+            .select("id")
+            .single();
+  
+          if (projectError) throw new Error(`Project insert failed: ${projectError.message}`);
+          if (!project) throw new Error("Project insert returned no data");
+  
+         
+  
+          
+  
+          successCount++;
+        } catch (error) {
+          errorCount++;
+          const errorMsg = error instanceof Error ? error.message : String(error);
+          errors.push(`Row ${rowNumber}: ${errorMsg}`);
+          console.error(`Row ${rowNumber} Error:`, errorMsg, "Row Data:", row);
+        }
+      }
+  
+      // Final Result
+      if (errorCount === 0) {
+        alert(`Successfully imported ${successCount} projects!`);
+      } else {
+        alert(
+          `Import Results:\n\n` +
+            `✅ Success: ${successCount}\n` +
+            `❌ Failed: ${errorCount}\n\n` +
+            `First 5 errors:\n${errors.slice(0, 5).join("\n")}`
+        );
+      }
     } catch (error) {
       alert(
-        `Import Failed: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
+        `Import Failed: ${error instanceof Error ? error.message : "Unknown error"}`
       );
       console.error("Import Error:", error);
     } finally {
@@ -376,6 +390,7 @@ export default function RegisterPage() {
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
+  
 
   // Add this to your return statement, near the top of the form
   return (
@@ -390,7 +405,7 @@ export default function RegisterPage() {
         <input
           type="file"
           ref={fileInputRef}
-          accept=".csv"
+          accept=".csv, .xlsm, .xlsx"
           onChange={handleCSVImport}
           className="hidden"
           disabled={isSubmitting}
@@ -432,7 +447,7 @@ export default function RegisterPage() {
       {step === 0 && (
         <div className="space-y-4">
           <input
-            type="number"
+            type="text"
             placeholder="Group Number *"
             value={formData.group_number}
             onChange={(e) => handleChange("group_number", e.target.value)}
@@ -454,14 +469,14 @@ export default function RegisterPage() {
             className="w-full border px-3 py-2 rounded"
           >
             <option value="">Select Domain *</option>
-            <option>Manufacturing</option>
-            <option>Health & Hygiene</option>
-            <option>Agriculture</option>
-            <option>Energy</option>
-            <option>Infrastructure</option>
-            <option>Sustainable Solutions</option>
-            <option>Climate and Waste Management</option>
-            <option>Other</option>
+            <option>1. Manufacturing</option>
+            <option>2. Health & Hygiene</option>
+            <option>3. Agriculture</option>
+            <option>4. Energy</option>
+            <option>5. Infrastructure</option>
+            <option>6. Sustainable Solutions</option>
+            <option>7.Climate and Waste Management</option>
+            <option>8. Other related with theme</option>
           </select>
           <select
             value={formData.category}
@@ -481,6 +496,47 @@ export default function RegisterPage() {
             <option>Degree</option>
             <option>Diploma</option>
           </select>
+
+          <input
+            type="text"
+            placeholder="Additional Facilities *"
+            value={formData.additional_facilities}
+            onChange={(e) =>
+              handleChange("additional_facilities", e.target.value)
+            }
+            className="w-full border px-3 py-2 rounded"
+            required
+            min="1"
+          />
+
+          <input
+            type="text"
+            placeholder="Payment UTR *"
+            value={formData.payment_utr}
+            onChange={(e) => handleChange("payment_utr", e.target.value)}
+            className="w-full border px-3 py-2 rounded"
+            required
+          />
+
+          <input
+            type="text"
+            placeholder="Payment Transaction Number *"
+            value={formData.payment_transaction_number}
+            onChange={(e) =>
+              handleChange("payment_transaction_number", e.target.value)
+            }
+            className="w-full border px-3 py-2 rounded"
+            required
+          />
+
+          <input
+            type="date"
+            placeholder="Transaction Date *"
+            value={formData.transaction_date}
+            onChange={(e) => handleChange("transaction_date", e.target.value)}
+            className="w-full border px-3 py-2 rounded"
+            required
+          />
         </div>
       )}
 
@@ -525,7 +581,7 @@ export default function RegisterPage() {
       {/* STEP 3: Participants */}
       {step === 2 && (
         <div className="space-y-6">
-          {[0, 1, 2, 3].map((i) => (
+          {/* {[0, 1, 2, 3].map((i) => (
             <div key={i} className="border-b pb-4">
               <h4 className="font-semibold text-violet-700">
                 Participant {i + 1} {i === 0 && "* Required"}
@@ -561,7 +617,86 @@ export default function RegisterPage() {
                 required={i === 0}
               />
             </div>
-          ))}
+          ))} */}
+
+          <input
+            type="text"
+            placeholder="Participant 1 Name *"
+            value={formData.participant_1_name}
+            onChange={(e) => handleChange("participant_1_name", e.target.value)}
+            className="w-full border px-3 py-2 rounded"
+            required
+          />
+          <input
+            type="text"
+            placeholder="Participant 1 Email *"
+            value={formData.participant_1_email}
+            onChange={(e) =>
+              handleChange("participant_1_email", e.target.value)
+            }
+            className="w-full border px-3 py-2 rounded"
+            required
+          />
+
+          <input
+            type="text"
+            placeholder="Participant 1 Contact *"
+            value={formData.participant_1_contact}
+            onChange={(e) =>
+              handleChange("participant_1_contact", e.target.value)
+            }
+            className="w-full border px-3 py-2 rounded"
+            required
+          />
+          {/* Line */}
+
+          <input
+            type="text"
+            placeholder="Participant 2 Name *"
+            value={formData.participant_2_name}
+            onChange={(e) => handleChange("participant_2_name", e.target.value)}
+            className="w-full border px-3 py-2 rounded"
+            required
+          />
+          <input
+            type="text"
+            placeholder="Participant 2 Email *"
+            value={formData.participant_2_email}
+            onChange={(e) =>
+              handleChange("participant_2_email", e.target.value)
+            }
+            className="w-full border px-3 py-2 rounded"
+            required
+          />
+
+          <input
+            type="text"
+            placeholder="Participant 2 Contact *"
+            value={formData.participant_2_contact}
+            onChange={(e) =>
+              handleChange("participant_2_contact", e.target.value)
+            }
+            className="w-full border px-3 py-2 rounded"
+            required
+          />
+
+          <input
+            type="text"
+            placeholder="Participant 3 Name *"
+            value={formData.participant_3_name}
+            onChange={(e) => handleChange("participant_3_name", e.target.value)}
+            className="w-full border px-3 py-2 rounded"
+            required
+          />
+
+          <input
+            type="text"
+            placeholder="Participant 4 Name *"
+            value={formData.participant_4_name}
+            onChange={(e) => handleChange("participant_4_name", e.target.value)}
+            className="w-full border px-3 py-2 rounded"
+            required
+          />
         </div>
       )}
 
@@ -586,17 +721,19 @@ export default function RegisterPage() {
             <strong>University:</strong> {formData.university}
           </div>
           <div>
-            <strong>Participants:</strong>
-            <ul className="list-disc list-inside">
-              {formData.participants.map(
-                (p, i) =>
-                  p.name && (
-                    <li key={i}>
-                      {p.name} ({p.email}, {p.contact})
-                    </li>
-                  )
-              )}
-            </ul>
+            <strong>Participants:</strong> {formData.participant_1_name},{" "}
+            {formData.participant_2_name}, {formData.participant_3_name},{" "}
+            {formData.participant_4_name}
+          </div>
+          <div>
+            <strong>Payment UTR:</strong> {formData.payment_utr}
+          </div>
+          <div>
+            <strong>Transaction Number:</strong>{" "}
+            {formData.payment_transaction_number}
+          </div>
+          <div>
+            <strong>Transaction Date:</strong> {formData.transaction_date}
           </div>
         </div>
       )}
@@ -620,7 +757,7 @@ export default function RegisterPage() {
         ) : (
           <button
             onClick={handleSubmit}
-            disabled={isSubmitting || !isFormComplete()}
+            // disabled={isSubmitting || !isFormComplete()}
             className="bg-pink-600 text-white px-6 py-2 rounded hover:bg-violet-700 disabled:opacity-50"
           >
             {isSubmitting ? "Submitting..." : "Submit"}
