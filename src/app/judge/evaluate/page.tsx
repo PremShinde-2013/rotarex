@@ -9,7 +9,7 @@ type Project = {
   id: string;
   group_number: number;
   project_title: string;
-  category: string;
+  category: "Mini Project" | "Major Project"; // assuming category is this
   department: string;
   domain: string;
   status: string;
@@ -25,25 +25,7 @@ export default function EvaluateProject() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [marks, setMarks] = useState({
-    clarity_of_problem: "",
-    social_relevance: "",
-    novelty: "",
-    creativity: "",
-    technical_feasibility: "",
-    functionality: "",
-    design_for_use: "",
-    completeness: "",
-    environmental_impact: "",
-    sdg_alignment: "",
-    commercial_potential: "",
-    scalability: "",
-    clarity_and_structure: "",
-    visuals_demo: "",
-    teamwork: "",
-    research: "",
-  });
-
+  const [marks, setMarks] = useState<{ [key: string]: string; }>({});
   const [totalScore, setTotalScore] = useState(0);
   const [showScoreCard, setShowScoreCard] = useState(false);
 
@@ -94,6 +76,16 @@ export default function EvaluateProject() {
     }
 
     setProject(data as Project);
+    resetMarks(data.category);
+  };
+
+  const resetMarks = (category: "Mini Project" | "Major Project") => {
+    const fields = category === "Major Project" ? majorFields : miniFields;
+    const initialMarks: { [key: string]: string; } = {};
+    fields.forEach((field) => {
+      initialMarks[field.name] = "";
+    });
+    setMarks(initialMarks);
   };
 
   const isFormComplete = Object.values(marks).every(
@@ -103,6 +95,10 @@ export default function EvaluateProject() {
 
   const handleSubmit = async () => {
     if (!project) return;
+    if (!isFormComplete) {
+      toast.error("Please fill all marks between 0-10.");
+      return;
+    }
 
     setLoading(true);
     const total = Object.values(marks).reduce(
@@ -146,7 +142,6 @@ export default function EvaluateProject() {
       toast.success("Evaluation submitted successfully!");
       setProject(null);
       setGroupNumber("");
-      resetMarks();
     }
 
     setLoading(false);
@@ -157,88 +152,59 @@ export default function EvaluateProject() {
     setMarks((prev) => ({ ...prev, [name]: value }));
   };
 
-  const resetMarks = () => {
-    setMarks({
-      clarity_of_problem: "",
-      social_relevance: "",
-      novelty: "",
-      creativity: "",
-      technical_feasibility: "",
-      functionality: "",
-      design_for_use: "",
-      completeness: "",
-      environmental_impact: "",
-      sdg_alignment: "",
-      commercial_potential: "",
-      scalability: "",
-      clarity_and_structure: "",
-      visuals_demo: "",
-      teamwork: "",
-      research: "",
-    });
-  };
-
-  const evaluationCriteria = [
-    {
-      section: "1. Problem Identification & Relevance (10 marks)",
-      fields: [
-        { name: "clarity_of_problem", label: "Clarity of Problem (/5)" },
-        {
-          name: "social_relevance",
-          label: "Social/Environmental Relevance (/5)",
-        },
-      ],
-    },
-    {
-      section: "2. Innovation & Uniqueness (15 marks)",
-      fields: [
-        { name: "novelty", label: "Novelty (/7)" },
-        { name: "creativity", label: "Creativity in Approach (/8)" },
-      ],
-    },
-    {
-      section: "3. Technical Feasibility & Functionality (20 marks)",
-      fields: [
-        { name: "technical_feasibility", label: "Engineering Soundness (/10)" },
-        { name: "functionality", label: "Functionality (/10)" },
-      ],
-    },
-    {
-      section: "4. Product Design & Usability (10 marks)",
-      fields: [
-        { name: "design_for_use", label: "Design for Use (/5)" },
-        { name: "completeness", label: "Completeness (/5)" },
-      ],
-    },
-    {
-      section: "5. Sustainability Impact (15 marks)",
-      fields: [
-        { name: "environmental_impact", label: "Environmental Impact (/7)" },
-        { name: "sdg_alignment", label: "Alignment with SDGs (/8)" },
-      ],
-    },
-    {
-      section: "6. Market Viability & Scalability (10 marks)",
-      fields: [
-        { name: "commercial_potential", label: "Commercial Potential (/5)" },
-        { name: "scalability", label: "Scalability (/5)" },
-      ],
-    },
-    {
-      section: "7. Presentation & Communication (10 marks)",
-      fields: [
-        { name: "clarity_and_structure", label: "Clarity & Structure (/5)" },
-        { name: "visuals_demo", label: "Visuals/Demo (/5)" },
-      ],
-    },
-    {
-      section: "8. Teamwork, Research & Documentation (10 marks)",
-      fields: [
-        { name: "teamwork", label: "Collaboration (/5)" },
-        { name: "research", label: "Research & References (/5)" },
-      ],
-    },
+  // 🔥 Mini Project Evaluation Fields
+  const miniFields = [
+    { name: "scope_of_the_work", label: "Scope of the Work (/5)" },
+    { name: "application", label: "Application (/5)" },
+    { name: "achieved_results", label: "Achieved Results (/5)" },
+    { name: "knowledge_of_the_work", label: "Knowledge of the Work (/5)" },
+    { name: "presentation_skills", label: "Presentation Skills (/5)" },
+    { name: "literature_review", label: "Literature Review (/5)" },
+    { name: "teamwork", label: "Teamwork (/5)" },
+    { name: "design_methodology", label: "Design Methodology (/5)" },
+    { name: "aesthetic_and_ergonomics", label: "Aesthetic and Ergonomics (/5)" },
+    { name: "initiative_and_creativity", label: "Initiative and Creativity (/5)" },
   ];
+
+  // 🔥 Major Project Evaluation Fields
+  const majorFields = [
+    { name: "problem_identification_relevance", label: "Problem Identification & Relevance (/5)" },
+    { name: "technical_knowledge", label: "Technical Knowledge (/5)" },
+    { name: "literature_review", label: "Literature Review (/5)" },
+    { name: "aesthetics_ergonomics", label: "Aesthetics / Ergonomics (/5)" },
+    { name: "results_outcome", label: "Results & Outcome (/5)" },
+    { name: "cost_effectiveness", label: "Cost Effectiveness (/5)" },
+    { name: "innovation_product_design", label: "Innovation and Product Design (/5)" },
+    { name: "sustainability_impact", label: "Sustainability Impact (/5)" },
+    { name: "market_scalability", label: "Market Scalability (/5)" },
+    { name: "ipr_publications", label: "IPR / Publications (/5)" },
+  ];
+
+
+  const renderFields = () => {
+    if (!project) return null;
+    const fields = project.category === "Major Project" ? majorFields : miniFields;
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {fields.map((field) => (
+          <div key={field.name} className="flex flex-col">
+            <label className="text-sm font-medium text-gray-700 mb-1">
+              {field.label}
+            </label>
+            <input
+              type="number"
+              name={field.name}
+              value={marks[field.name] || ""}
+              onChange={handleChange}
+              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-violet-500"
+              min="0"
+              max="10"
+            />
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="max-w-5xl mx-auto mt-20 px-6 h-full">
@@ -263,102 +229,44 @@ export default function EvaluateProject() {
       </div>
 
       {error && (
-        <p className="text-red-600 px-4 py-3 rounded-lg font-medium mb-4 bg-red-100 p-1">
-          <svg
-            className="shrink-0 inline w-4 h-4 me-3"
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-          </svg>
+        <p className="text-red-600 bg-red-100 p-2 rounded-lg font-medium mb-4">
           {error}
         </p>
       )}
 
       {project && (
         <>
-          <div className="bg-white shadow-md rounded-xl p-6 border border-gray-200 space-y-2 mb-6">
+          <div className="bg-white shadow-md rounded-xl p-6 border border-gray-200 mb-6">
             <h2 className="text-2xl font-semibold text-violet-700">
               {project.project_title}
             </h2>
-            <p>
-              <strong>Group No:</strong> {project.group_number}
-            </p>
-            <p>
-              <strong>Category:</strong> {project.category}
-            </p>
-            <p>
-              <strong>Department:</strong> {project.department}
-            </p>
-            <p>
-              <strong>Status:</strong> {project.status}
-            </p>
+            <p><strong>Group No:</strong> {project.group_number}</p>
+            <p><strong>Category:</strong> {project.category}</p>
+            <p><strong>Department:</strong> {project.department}</p>
+            <p><strong>Status:</strong> {project.status}</p>
           </div>
 
-          <div className="bg-white shadow p-6 rounded-xl border border-gray-200 space-y-4">
-            <h3 className="text-xl font-bold text-gray-700 mb-2">
-              Evaluation Sheet
+          <div className="bg-white shadow p-6 rounded-xl border border-gray-200">
+            <h3 className="text-xl font-bold text-gray-700 mb-4">
+              {project.category} Evaluation Form
             </h3>
 
-            {evaluationCriteria.map((section, idx) => (
-              <div key={idx} className="mb-6">
-                <h4 className="text-lg font-semibold text-violet-600 mb-2">
-                  {section.section}
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {section.fields.map((field) => (
-                    <div key={field.name} className="flex flex-col">
-                      <label className="text-sm font-medium text-gray-700 mb-1">
-                        {field.label}
-                      </label>
-                      <input
-                        type="number"
-                        name={field.name}
-                        value={marks[field.name as keyof typeof marks]}
-                        onChange={handleChange}
-                        className="border px-3 py-2 rounded-lg focus:ring-2 focus:ring-violet-500"
-                        min={0}
-                        max={10}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+            {renderFields()}
 
             <button
               onClick={handleSubmit}
               disabled={!isFormComplete || loading}
-              className={`mt-6 px-6 py-3 rounded-xl font-semibold text-white ${
-                !isFormComplete || loading
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-green-600 hover:bg-green-700"
-              }`}
+              className="mt-6 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-semibold w-full"
             >
               {loading ? "Submitting..." : "Submit Evaluation"}
             </button>
-          </div>
 
-          {/* ✅ Success Card After Submit */}
-          {showScoreCard && (
-            <div className="fixed top-20 right-5 bg-green-100 border-2 border-green-500 rounded-xl p-6 shadow-lg z-50 animate-fade-in">
-              <h3 className="text-2xl font-bold text-green-700 mb-2">
-                ✅ Evaluation Submitted!
-              </h3>
-              <p className="text-lg text-gray-800">
-                <strong>Group Number:</strong> {project?.group_number}
+            {showScoreCard && (
+              <p className="mt-4 text-lg text-center font-bold text-violet-700">
+                Total Score: {totalScore}
               </p>
-              <p className="text-lg text-gray-800">
-                <strong>Project Title:</strong> {project?.project_title}
-              </p>
-              <p className="text-lg text-gray-800">
-                <strong>Total Marks:</strong>{" "}
-                <span className="text-green-700">{totalScore} / 100</span>
-              </p>
-            </div>
-          )}
+            )}
+          </div>
         </>
       )}
     </div>

@@ -19,13 +19,14 @@ export default function SignupPage() {
   const router = useRouter();
 
   const domains = [
-    'Manufacturing',
-    'Health & Hygiene',
-    'Agriculture',
-    'Energy',
-    'Infrastructure',
-    'Sustainable Solutions',
-    'Climate and Waste Management',
+    '1. Manufacturing',
+    '2. Health & Hygiene',
+    '3. Agriculture',
+    '4. Energy',
+    '5. Infrastructure',
+    '6. Sustainable Solutions',
+    '7. Climate and Waste Management',
+    '8. Other related with theme'
   ];
 
   const handleSignup = async () => {
