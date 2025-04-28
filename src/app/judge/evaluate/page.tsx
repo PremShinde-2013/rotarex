@@ -61,7 +61,7 @@ export default function EvaluateProject() {
     const { data, error } = await supabase
       .from("projects")
       .select("*")
-      .eq("group_number", Number(groupNumber))
+      .eq("group_number", String(groupNumber))
       .eq("domain", domain)
       .single();
 
@@ -214,7 +214,7 @@ export default function EvaluateProject() {
 
       <div className="flex gap-4 items-center mb-6">
         <input
-          type="number"
+          type="text"
           placeholder="Enter Group Number"
           className="px-4 py-3 border rounded-lg w-full focus:ring-2 focus:ring-violet-500"
           value={groupNumber}

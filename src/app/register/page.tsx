@@ -203,7 +203,9 @@ export default function RegisterPage() {
           let errorCount = 0;
           const errors: string[] = [];
 
-          for (const [index, row] of (results.data as { [key: string]: string }[]).entries()) {
+          for (const [index, row] of (
+            results.data as { [key: string]: string }[]
+          ).entries()) {
             const rowNumber = index + 1;
             try {
               // Validate required fields with better error messages
@@ -231,9 +233,11 @@ export default function RegisterPage() {
               // Prepare project data with type safety
               const projectData = {
                 group_number: row.group_number ? String(row.group_number) : "",
-                project_title: String(row.project_title),
-                domain: String(row.domain),
-                category: String(row.category),
+                domain: row.domain ? String(row.domain) : "",
+                category: row.category ? String(row.category) : "",
+                project_title: row.project_title
+                  ? String(row.project_title)
+                  : "",
                 degree_type: row.degree_type ? String(row.degree_type) : "",
                 department: row.department ? String(row.department) : "",
                 institute_name: row.institute_name
@@ -243,6 +247,48 @@ export default function RegisterPage() {
                   ? String(row.institute_address)
                   : "",
                 university: row.university ? String(row.university) : "",
+                participant_1_name: row.participant1_name
+                  ? String(row.participant1_name)
+                  : "",
+                participant_1_email: row.participant1_email
+                  ? String(row.participant1_email)
+                  : "",
+                participant_1_contact: row.participant1_contact
+                  ? String(row.participant1_contact)
+                  : "",
+                participant_2_name: row.participant2_name
+                  ? String(row.participant2_name)
+                  : "",
+                participant_2_email: row.participant2_email
+                  ? String(row.participant2_email)
+                  : "",
+                participant_2_contact: row.participant2_contact
+                  ? String(row.participant2_contact)
+                  : "",
+                participant_3_name: row.participant3_name
+                  ? String(row.participant3_name)
+                  : "",
+                participant_4_name: row.participant4_name
+                  ? String(row.participant4_name)
+                  : "",
+
+                additional_faculty: row.additional_faculty
+                  ? String(row.additional_faculty)
+                  : "",
+                payment_utr: row.payment_utr ? String(row.payment_utr) : "",
+                payment_transaction_number: row.payment_transaction_number
+                  ? String(row.payment_transaction_number)
+                  : "",
+                transaction_date: row.payment_date
+                  ? new Date(row.payment_date).toISOString().slice(0, 10)
+                  : null,
+
+                registration_sign: row.registration_sign
+                  ? String(row.registration_sign)
+                  : "",
+                certificate_issued: row.certificate_issued
+                  ? String(row.certificate_issued)
+                  : "",
                 status: "Pending",
               };
 
@@ -340,33 +386,33 @@ export default function RegisterPage() {
 
       {/* Add this CSV import section */}
       <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 bg-gray-50 p-8 rounded-2xl shadow-sm hover:shadow-md transition duration-300 ease-in-out text-center">
-      <UploadCloud className="h-12 w-12 text-blue-500 mb-4" />
-      <input
-        type="file"
-        ref={fileInputRef}
-        accept=".csv"
-        onChange={handleCSVImport}
-        className="hidden"
-        disabled={isSubmitting}
-      />
-      <button
-        onClick={() => fileInputRef.current?.click()}
-        className="bg-blue-600 text-white font-semibold px-6 py-3 rounded-xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? "Importing..." : "Import from CSV"}
-      </button>
-      <p className="mt-4 text-sm text-gray-600">
-        Need a format?{" "}
-        <a
-          href="/sample-import.csv"
-          download
-          className="text-blue-600 hover:underline font-medium"
+        <UploadCloud className="h-12 w-12 text-blue-500 mb-4" />
+        <input
+          type="file"
+          ref={fileInputRef}
+          accept=".csv"
+          onChange={handleCSVImport}
+          className="hidden"
+          disabled={isSubmitting}
+        />
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="bg-blue-600 text-white font-semibold px-6 py-3 rounded-xl hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isSubmitting}
         >
-          Download CSV Template
-        </a>
-      </p>
-    </div>
+          {isSubmitting ? "Importing..." : "Import from CSV"}
+        </button>
+        <p className="mt-4 text-sm text-gray-600">
+          Need a format?{" "}
+          <a
+            href="/sample-import.csv"
+            download
+            className="text-blue-600 hover:underline font-medium"
+          >
+            Download CSV Template
+          </a>
+        </p>
+      </div>
 
       {/* STEP INDICATOR */}
       <div className="flex justify-between text-sm font-medium mb-4">
