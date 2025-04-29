@@ -1,13 +1,15 @@
-"use client";
-
+'use client';
 import { useEffect, useState } from "react";
 import { supabase } from "../../../../utils/supabaseClient";
 import { useRouter } from "next/navigation";
+import React from "react";
 
 interface Project {
   group_number: string;
   project_title: string;
   status: string;
+  domain?: string;
+  department?: string;
 }
 
 interface Judge {
@@ -19,7 +21,7 @@ interface Evaluation {
   project?: Project;
   judge?: Judge;
   status: string;
-  [key: string]: number | string | Project | Judge | undefined; // Specify possible types
+  [key: string]: number | string | Project | Judge | undefined;
 }
 
 export default function EvaluationTable() {
@@ -27,6 +29,7 @@ export default function EvaluationTable() {
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [selectedEvaluation, setSelectedEvaluation] =
     useState<Evaluation | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const role = sessionStorage.getItem("role");
@@ -38,10 +41,16 @@ export default function EvaluationTable() {
   useEffect(() => {
     const fetchEvaluations = async () => {
       const { data, error } = await supabase.from("evaluations").select(`
-          *,
-          project:project_id ( group_number, project_title, status ),
-          judge:judge_id ( name )
-        `);
+        *,
+        project:project_id (
+          group_number,
+          project_title,
+          status,
+          domain,
+          department
+        ),
+        judge:judge_id ( name )
+      `);
 
       if (!error && data) {
         setEvaluations(data as Evaluation[]);
@@ -88,11 +97,44 @@ export default function EvaluationTable() {
     }, 0);
   };
 
+  const filteredEvaluations = evaluations.filter((evaluation) => {
+    const groupNumber = evaluation.project?.group_number?.toString() || "";
+    const projectTitle = evaluation.project?.project_title?.toLowerCase() || "";
+    const domain = evaluation.project?.domain?.toLowerCase() || "";
+    const department = evaluation.project?.department?.toLowerCase() || "";
+
+    const term = searchTerm.toLowerCase();
+    return (
+      groupNumber.includes(term) ||
+      projectTitle.includes(term) ||
+      domain.includes(term) ||
+      department.includes(term)
+    );
+  });
+
+  // Group evaluations by project title
+  const groupedEvaluations = filteredEvaluations.reduce((groups, evaluation) => {
+    const title = evaluation.project?.project_title || "Untitled";
+    if (!groups[title]) {
+      groups[title] = [];
+    }
+    groups[title].push(evaluation);
+    return groups;
+  }, {} as Record<string, Evaluation[]>);
+
   return (
     <div className="max-w-7xl mx-auto mt-20 px-6">
       <h1 className="text-4xl font-bold text-violet-700 mb-6">
         Evaluation Table
       </h1>
+
+      <input
+        type="text"
+        placeholder="Search by Group No., Title, Domain, Department"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="mb-6 px-4 py-2 border border-gray-300 rounded-lg w-full max-w-md"
+      />
 
       <div className="overflow-x-auto shadow border rounded-2xl">
         <table className="min-w-full table-auto border-collapse">
@@ -107,41 +149,49 @@ export default function EvaluationTable() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {evaluations.map((evalItem) => (
-              <tr key={evalItem.id}>
-                <td className="px-6 py-4">
-                  {evalItem.project?.project_title || "-"}
-                </td>
-                <td className="px-6 py-4">
-                  {evalItem.project?.group_number || "-"}
-                </td>
-                <td className="px-6 py-4">{evalItem.judge?.name || "-"}</td>
-                <td className="px-6 py-4">{calculateTotalMarks(evalItem)}</td>
-                <td className="px-6 py-4">
-                  <span
-                    className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                      evalItem.project?.status === "Reviewed"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-yellow-700 text-yellow-700"
-                    }`}
-                  >
-                    {evalItem.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <button
-                    className="text-violet-600 hover:underline font-semibold"
-                    onClick={() => handleViewDetails(evalItem)}
-                  >
-                    View Details
-                  </button>
-                </td>
-              </tr>
+            {Object.entries(groupedEvaluations).map(([projectTitle, evaluations]) => (
+              <React.Fragment key={projectTitle}>
+                <tr>
+                  <td colSpan={6} className="bg-violet-100 text-violet-700 px-6 py-4 font-semibold">
+                    {projectTitle}
+                  </td>
+                </tr>
+                {evaluations.map((evalItem) => (
+                  <tr key={evalItem.id}>
+                    <td className="px-6 py-4">
+                      {evalItem.project?.project_title || "-"}
+                    </td>
+                    <td className="px-6 py-4">
+                      {evalItem.project?.group_number || "-"}
+                    </td>
+                    <td className="px-6 py-4">{evalItem.judge?.name || "-"}</td>
+                    <td className="px-6 py-4">{calculateTotalMarks(evalItem)}</td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${evalItem.project?.status === "Reviewed"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-yellow-100 text-yellow-700"
+                          }`}
+                      >
+                        {evalItem.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <button
+                        className="text-violet-600 hover:underline font-semibold"
+                        onClick={() => handleViewDetails(evalItem)}
+                      >
+                        View Details
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </React.Fragment>
             ))}
           </tbody>
         </table>
 
-        {evaluations.length === 0 && (
+        {filteredEvaluations.length === 0 && (
           <p className="text-center text-gray-500 py-10">
             No evaluations found.
           </p>

@@ -24,7 +24,7 @@ export default function AdminDashboard() {
       university: string;
       institute_name: string;
       poster_url?: string;
-      participants?: { name: string }[];
+      participants?: { name: string; }[];
       status: string;
       department: string;
       register_email: string;

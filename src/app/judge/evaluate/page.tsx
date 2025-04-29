@@ -95,24 +95,37 @@ export default function EvaluateProject() {
 
   const handleSubmit = async () => {
     if (!project) return;
+
     if (!isFormComplete) {
       toast.error("Please fill all marks between 0-10.");
       return;
     }
 
     setLoading(true);
-    const total = Object.values(marks).reduce(
-      (sum, val) => sum + Number(val),
-      0
-    );
-    setTotalScore(total);
+    const currentTotal = Object.values(marks).reduce((sum, val) => sum + Number(val), 0);
+    setTotalScore(currentTotal);
     setShowScoreCard(true);
 
     setTimeout(() => {
       setShowScoreCard(false);
     }, 5000);
 
-    const { error } = await supabase.from("evaluations").insert([
+    // Check if this judge already evaluated this project
+    const { data: existingEvaluation, error: fetchError } = await supabase
+      .from("evaluations")
+      .select("id")
+      .eq("project_id", project.id)
+      .eq("judge_id", judgeId)
+      .single();
+
+    if (!fetchError && existingEvaluation) {
+      toast.error("You have already evaluated this project.");
+      setLoading(false);
+      return;
+    }
+
+    // Insert new evaluation
+    const { error: insertError } = await supabase.from("evaluations").insert([
       {
         project_id: project.id,
         judge_id: judgeId,
@@ -122,30 +135,54 @@ export default function EvaluateProject() {
       },
     ]);
 
-    if (error) {
-      toast.error("Failed to submit evaluation");
+    if (insertError) {
+      toast.error("Failed to submit evaluation.");
       setLoading(false);
       return;
     }
 
+    // Fetch all evaluations for this project
+    const { data: evaluations, error: allEvalError } = await supabase
+      .from("evaluations")
+      .select("*")
+      .eq("project_id", project.id);
+
+    if (allEvalError || !evaluations) {
+      toast.error("Evaluation submitted, but failed to fetch evaluations.");
+      setLoading(false);
+      return;
+    }
+
+    // Calculate new average total marks
+    const totalSum = evaluations.reduce((sum, evalItem) => {
+      const sumPerEval = Object.entries(evalItem)
+        .filter(([key]) => key !== "id" && key !== "project_id" && key !== "judge_id" && typeof evalItem[key] === "number")
+        .reduce((s, [, v]) => s + Number(v), 0);
+      return sum + sumPerEval;
+    }, 0);
+
+    const avgTotal = Math.round(totalSum / evaluations.length);
+
+    // Update project with new average and set status
     const { error: updateError } = await supabase
       .from("projects")
       .update({
-        totalmarks: total,
+        totalmarks: avgTotal,
         status: "Reviewed",
       })
       .eq("id", project.id);
 
     if (updateError) {
-      toast.error("Evaluation saved but failed to update project status");
+      toast.error("Evaluation saved but failed to update project status.");
     } else {
-      toast.success("Evaluation submitted successfully!");
+      toast.success("Evaluation submitted and project updated!");
       setProject(null);
       setGroupNumber("");
     }
 
     setLoading(false);
   };
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
