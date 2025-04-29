@@ -70,10 +70,10 @@ export default function EvaluateProject() {
       return;
     }
 
-    if (data.status === "Reviewed") {
-      setError("This project has already been reviewed!");
-      return;
-    }
+    // if (data.status === "Reviewed") {
+    //   setError("This project has already been reviewed!");
+    //   return;
+    // }
 
     setProject(data as Project);
     resetMarks(data.category);

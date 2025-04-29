@@ -1,59 +1,71 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '../../../utils/supabaseClient';
-import bcrypt from 'bcryptjs';
-import toast, { Toaster } from 'react-hot-toast';
-import { Eye, EyeOff, Mail, User, Lock, Briefcase } from 'lucide-react';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "../../../utils/supabaseClient";
+import bcrypt from "bcryptjs";
+import toast, { Toaster } from "react-hot-toast";
+import { Eye, EyeOff, Mail, User, Lock, Briefcase } from "lucide-react";
 
 export default function SignupPage() {
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState('1');
-  const [domain, setDomain] = useState('');
+  const [role, setRole] = useState("1");
+  const [domain, setDomain] = useState("");
+  const [department, setDepartment] = useState("");
   const router = useRouter();
 
   const domains = [
-    '1. Manufacturing',
-    '2. Health & Hygiene',
-    '3. Agriculture',
-    '4. Energy',
-    '5. Infrastructure',
-    '6. Sustainable Solutions',
-    '7. Climate and Waste Management',
-    '8. Other related with theme'
+    "1. Manufacturing",
+    "2. Health & Hygiene",
+    "3. Agriculture",
+    "4. Energy",
+    "5. Infrastructure",
+    "6. Sustainable Solutions",
+    "7. Climate and Waste Management",
+    "8. Other related with theme",
+  ];
+
+  const departments = [
+    "Civil Engineering",
+    "Mechanical Engineering",
+    "Electrical Engineering",
+    "Computer Science and Engineering",
+    "Electronics and Communication Engineering",
+    // '6. Chemical Engineering',
+    // '7. Production Engineering',
+    "Other related with theme",
   ];
 
   const handleSignup = async () => {
     if (!email || !password || !confirmPassword || !name) {
-      toast.error('Please fill all required fields.');
+      toast.error("Please fill all required fields.");
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error('Passwords do not match.');
+      toast.error("Passwords do not match.");
       return;
     }
 
-    if (role === '0' && !domain) {
-      toast.error('Please select a domain.');
+    if (role === "0" && !department) {
+      toast.error("Please select a Department.");
       return;
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const { data, error: insertError } = await supabase.from('users').insert([
+    const { data, error: insertError } = await supabase.from("users").insert([
       {
         email,
         name,
         password: hashedPassword,
         role: Number(role),
-        domain: role === '0' ? domain : null,
+        department: role === "0" ? department : null,
       },
     ]);
 
@@ -62,8 +74,8 @@ export default function SignupPage() {
       return;
     }
 
-    toast.success('Account created successfully!');
-    router.push('/login');
+    toast.success("Account created successfully!");
+    router.push("/login");
   };
 
   return (
@@ -110,11 +122,13 @@ export default function SignupPage() {
 
           {/* Password */}
           <div className="relative">
-            <label className="text-sm font-medium text-gray-700">Password</label>
+            <label className="text-sm font-medium text-gray-700">
+              Password
+            </label>
             <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-violet-500">
               <Lock size={18} className="text-gray-400 mr-2" />
               <input
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -132,11 +146,13 @@ export default function SignupPage() {
 
           {/* Confirm Password */}
           <div className="relative">
-            <label className="text-sm font-medium text-gray-700">Confirm Password</label>
+            <label className="text-sm font-medium text-gray-700">
+              Confirm Password
+            </label>
             <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-violet-500">
               <Lock size={18} className="text-gray-400 mr-2" />
               <input
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -166,16 +182,19 @@ export default function SignupPage() {
           </div>
 
           {/* Domain (if Judge) */}
-          {role === '0' && (
+          {/* Department (if Judge) */}
+          {role === "0" && (
             <div>
-              <label className="text-sm font-medium text-gray-700">Domain</label>
+              <label className="text-sm font-medium text-gray-700">
+                Department
+              </label>
               <select
                 className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm bg-white"
-                value={domain}
-                onChange={(e) => setDomain(e.target.value)}
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
               >
-                <option value="">Select Domain</option>
-                {domains.map((d) => (
+                <option value="">Select Department</option>
+                {departments.map((d) => (
                   <option key={d} value={d}>
                     {d}
                   </option>
@@ -194,7 +213,7 @@ export default function SignupPage() {
 
           <div className="text-center text-sm text-gray-500 mt-4">
             <p className="text-center text-sm text-gray-500">
-              Already have an account?{' '}
+              Already have an account?{" "}
               <a href="/login" className="text-violet-600 font-semibold">
                 Sign In
               </a>
